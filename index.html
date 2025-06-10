@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>ダッシュライダーZ</title>
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: #f0f0f0;
+      }
+      canvas {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      let player;
+      let obstacles = [];
+      let gravity = 0.7;
+      let jumpPower = -12;
+      let groundY;
+      let score = 0;
+      let gameOver = false;
+
+      function setup() {
+        createCanvas(windowWidth, windowHeight);
+        groundY = height - 50;
+        player = {
+          x: 100,
+          y: groundY,
+          vy: 0,
+          size: 30
+        };
+      }
+
+      function draw() {
+        background(240);
+        fill(50);
+        textSize(24);
+        text("Score: " + floor(score), 20, 40);
+
+        if (!gameOver) {
+          player.vy += gravity;
+          player.y += player.vy;
+
+          if (player.y > groundY) {
+            player.y = groundY;
+            player.vy = 0;
+          }
+
+          fill(0);
+          ellipse(player.x, player.y, player.size);
+          stroke(0);
+          line(0, groundY + player.size / 2, width, groundY + player.size / 2);
+
+          if (frameCount % 80 === 0) {
+            obstacles.push({
+              x: width,
+              y: groundY,
+              size: random(30, 50)
+            });
+          }
+
+          for (let i = obstacles.length - 1; i >= 0; i--) {
+            let o = obstacles[i];
+            o.x -= 6;
+            fill(180, 0, 0);
+            rect(o.x, o.y - o.size, o.size, o.size);
+
+            if (
+              o.x < player.x + player.size / 2 &&
+              o.x + o.size > player.x - player.size / 2 &&
+              player.y + player.size / 2 > o.y - o.size
+            ) {
+              gameOver = true;
+            }
+
+            if (o.x + o.size < 0) {
+              obstacles.splice(i, 1);
+            }
+          }
+
+          score += 0.2;
+        } else {
+          textSize(36);
+          textAlign(CENTER);
+          fill(200, 0, 0);
+          text("Game Over", width / 2, height / 2);
+          textSize(24);
+          text("タップ or スペースキーで再スタート", width / 2, height / 2 + 40);
+        }
+      }
+
+      function keyPressed() {
+        if (!gameOver && key === ' ') {
+          if (player.y === groundY) {
+            player.vy = jumpPower;
+          }
+        } else if (gameOver && key === ' ') {
+          resetGame();
+        }
+      }
+
+      function touchStarted() {
+        if (!gameOver) {
+          if (player.y === groundY) {
+            player.vy = jumpPower;
+          }
+        } else {
+          resetGame();
+        }
+        return false;
+      }
+
+      function resetGame() {
+        player.y = groundY;
+        player.vy = 0;
+        obstacles = [];
+        score = 0;
+        gameOver = false;
+      }
+
+      function windowResized() {
+        resizeCanvas(windowWidth, windowHeight);
+        groundY = height - 50;
+      }
+    </script>
+  </body>
+</html>
